@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+
+{% block title %}Открытие пака{% endblock %}
+
+{% block content %}
+<div class="pack-result-page">
+    <div class="pack-opening-stage" id="pack-opening-stage">
+        <div class="opening-copy">
+            <span class="eyebrow">Открытие набора</span>
+            <h1>Пакет куплен</h1>
+            <p>Нажмите на пакет ниже и откройте свою новую карточку.</p>
+        </div>
+
+        <button class="pack-visual rarity-{{ card.rarity }}" id="reveal-pack-button" type="button">
+            <span class="pack-visual-glow"></span>
+            <span class="pack-label">CARD PACK</span>
+            <span class="pack-tap">Нажмите, чтобы открыть</span>
+        </button>
+    </div>
+
+    <div class="pack-reveal-stage hidden" id="pack-reveal-stage">
+        <div class="result-banner rarity-banner-{{ card.rarity }}">
+            <span>Выпала карточка</span>
+            <strong>{{ card.rarity|upper }}</strong>
+        </div>
+
+        <article class="revealed-card rarity-{{ card.rarity }}" id="revealed-card">
+            <div class="card-showcase-glow"></div>
+            <div class="revealed-top">
+                <span class="card-id-badge">#{{ card.id }}</span>
+                <span class="rarity-badge rarity-badge-{{ card.rarity }}">{{ card.rarity }}</span>
+            </div>
+
+            <div class="revealed-body">
+                <div class="card-emblem card-emblem-xl rarity-emblem-{{ card.rarity }}">
+                    {% if card.rarity == 'common' %}C{% elif card.rarity == 'rare' %}R{% elif card.rarity == 'epic' %}E{% else %}L{% endif %}
+                </div>
+                <h2>{{ card.name }}</h2>
+                <p class="card-subject-line">{{ card.subject }}</p>
+                <p class="revealed-description">{{ card.description }}</p>
+            </div>
+
+            <div class="revealed-meta">
+                <div class="meta-chip"><span>Редкость</span><strong>{{ card.rarity }}</strong></div>
+                <div class="meta-chip"><span>Базовая ценность</span><strong>{{ card.base_price }}</strong></div>
+                <div class="meta-chip"><span>Теперь копий</span><strong>x{{ duplicate_count }}</strong></div>
+            </div>
+        </article>
+
+        <div class="pack-actions">
+            <a href="{{ url_for('collection') }}" class="btn">В коллекцию</a>
+            <a href="{{ url_for('shop') }}" class="btn btn-secondary">Открыть ещё один</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

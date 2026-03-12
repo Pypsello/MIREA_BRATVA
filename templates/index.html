@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="hero">
+    <h1>Добро пожаловать в MIREA_BRATVA!</h1>
+    <p>Карты гембл два ствола! Проходи тесты, собирай карточки преподавателей и соревнуйся с друзьями.</p>
+    
+    {% if not current_user.is_authenticated %}
+    <div class="cta-buttons">
+        <a href="{{ url_for('register') }}" class="btn btn-primary">Начать играть</a>
+        <a href="{{ url_for('login') }}" class="btn btn-secondary">Войти</a>
+    </div>
+    {% endif %}
+</div>
+
+<div class="features">
+    <h2>Как это работает?</h2>
+    <div class="features-grid">
+        <div class="feature">
+            <h3>📚 Проходи тесты</h3>
+            <p>Отвечай на вопросы по разным предметам и зарабатывай монеты</p>
+        </div>
+        <div class="feature">
+            <h3>🃏 Собирай карточки</h3>
+            <p>Покупай пакеты с карточками преподавателей и пополняй коллекцию</p>
+        </div>
+        <div class="feature">
+            <h3>🤝 Обменивайся</h3>
+            <p>Меняй дубликаты с друзьями, чтобы собрать полную коллекцию</p>
+        </div>
+        <div class="feature">
+            <h3>🏆 Соревнуйся</h3>
+            <p>Поднимайся в рейтинге и покажи, кто самый богатый</p>
+        </div>
+    </div>
+</div>
+{% endblock %}

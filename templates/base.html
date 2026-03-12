@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}MIREA_BRATVA{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body class="{% if current_user.is_authenticated and current_user.profile_theme == 'light' %}light-theme{% else %}dark-theme{% endif %}">
+    {% if current_user.is_authenticated %}
+    <a class="theme-toggle" href="{{ url_for('toggle_theme') }}" title="Переключить тему">
+        {% if current_user.profile_theme == 'light' %}🌙 Тёмная тема{% else %}☀️ Светлая тема{% endif %}
+    </a>
+    {% endif %}
+
+    <nav class="navbar">
+        <div class="nav-container">
+            <a class="nav-logo" href="{{ url_for('index') }}">MIREA_BRATVA</a>
+            <ul class="nav-menu">
+                {% if current_user.is_authenticated %}
+                    <li><a href="{{ url_for('profile') }}">Профиль</a></li>
+                    <li><a href="{{ url_for('collection') }}">Коллекция</a></li>
+                    <li><a href="{{ url_for('quizzes') }}">Тесты</a></li>
+                    <li><a href="{{ url_for('shop') }}">Магазин</a></li>
+                    <li><a href="{{ url_for('exchange') }}">Обмен</a></li>
+                    <li><a href="{{ url_for('rating') }}">Рейтинг</a></li>
+                    <li><a href="{{ url_for('logout') }}">Выйти</a></li>
+                    <li class="coins">💰 {{ current_user.coins }}</li>
+                {% else %}
+                    <li><a href="{{ url_for('login') }}">Вход</a></li>
+                    <li><a href="{{ url_for('register') }}">Регистрация</a></li>
+                {% endif %}
+            </ul>
+        </div>
+    </nav>
+
+    <main class="container">
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                <div class="flash-messages">
+                    {% for message in messages %}
+                        <div class="flash-message">{{ message }}</div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        {% block content %}{% endblock %}
+    </main>
+
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>

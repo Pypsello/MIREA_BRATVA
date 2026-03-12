@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="shop-container">
+    <h1>Магазин</h1>
+    <p class="user-coins">Ваши монеты: {{ current_user.coins }}</p>
+
+    <div class="shop-categories">
+        <div class="category">
+            <h2>Рамки для аватара</h2>
+            <div class="items-grid">
+                {% for frame in frames %}
+                <div class="shop-item">
+                    <h3>{{ frame.name }}</h3>
+                    <p>{{ frame.description }}</p>
+                    <p class="price">{{ frame.price }} монет</p>
+                    <a href="{{ url_for('buy_item', item_id=frame.id) }}"
+                       class="btn"
+                       onclick="return confirm('Купить {{ frame.name }} за {{ frame.price }} монет?')">
+                        Купить
+                    </a>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        {% if card_pack %}
+        <div class="category">
+            <h2>Пакеты с карточками</h2>
+            <div class="items-grid">
+                <div class="shop-item card-pack">
+                    <h3>{{ card_pack.name }}</h3>
+                    <p>{{ card_pack.description }}</p>
+                    <p>Шансы выпадения:</p>
+                    <ul class="rarity-chances">
+                        <li>Обычные: 60%</li>
+                        <li>Редкие: 25%</li>
+                        <li>Эпические: 10%</li>
+                        <li>Легендарные: 5%</li>
+                    </ul>
+                    <p class="price">{{ card_pack.price }} монет</p>
+                    <form method="post" action="{{ url_for('buy_item', item_id=card_pack.id) }}" class="pack-purchase-form" onsubmit="return confirm('Купить пакет за {{ card_pack.price }} монет?')">
+                        <button type="submit" class="btn btn-pack" onclick="openCardPack()">Купить и открыть</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

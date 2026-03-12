@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="collection-page">
+    <div class="collection-hero hero-slim">
+        <div>
+            <h1>Моя коллекция</h1>
+            <p class="collection-hint">Нажмите на карточку-дубликат, чтобы открыть полное описание и продать одну копию.</p>
+        </div>
+        <div class="collection-stats">
+            <div class="collection-stat">
+                <span class="collection-stat-label">Уникальных карточек</span>
+                <strong>{{ user_cards|length }}</strong>
+            </div>
+            <div class="collection-stat">
+                <span class="collection-stat-label">Всего копий</span>
+                <strong>{{ user_cards|sum(attribute='quantity') if user_cards else 0 }}</strong>
+            </div>
+        </div>
+    </div>
+
+    {% if user_cards %}
+        <div class="items-grid collection-grid collection-grid-enhanced">
+            {% for user_card in user_cards %}
+                {% set is_duplicate = user_card.quantity > 1 %}
+                {% set sell_price = 25 if user_card.card.rarity == 'common' else 50 if user_card.card.rarity == 'rare' else 75 if user_card.card.rarity == 'epic' else 90 %}
+                <article class="shop-item card-tile card-showcase rarity-{{ user_card.card.rarity }} {% if is_duplicate %}clickable-card{% endif %} {% if not is_duplicate %}single-copy{% endif %}"
+                         {% if is_duplicate %}data-open-modal="card-modal-{{ user_card.card.id }}"{% endif %}>
+                    <div class="card-showcase-glow"></div>
+                    <div class="card-showcase-top">
+                        <span class="card-id-badge">#{{ user_card.card.id }}</span>
+                        <span class="rarity-badge rarity-badge-{{ user_card.card.rarity }}">{{ user_card.card.rarity }}</span>
+                    </div>
+
+                    <div class="card-showcase-body">
+                        <div class="card-emblem rarity-emblem-{{ user_card.card.rarity }}">
+                            {% if user_card.card.rarity == 'common' %}C{% elif user_card.card.rarity == 'rare' %}R{% elif user_card.card.rarity == 'epic' %}E{% else %}L{% endif %}
+                        </div>
+
+                        <div>
+                            <h3>{{ user_card.card.name }}</h3>
+                            <p class="card-subject-line">{{ user_card.card.subject }}</p>
+                            <p class="card-description-preview">{{ user_card.card.description }}</p>
+                        </div>
+                    </div>
+
+                    <div class="card-meta-grid">
+                        <div class="meta-chip">
+                            <span>Количество</span>
+                            <strong>x{{ user_card.quantity }}</strong>
+                        </div>
+                        <div class="meta-chip">
+                            <span>Продажа</span>
+                            <strong>{% if is_duplicate %}{{ sell_price }}{% else %}—{% endif %}</strong>
+                        </div>
+                    </div>
+
+                    {% if is_duplicate %}
+                        <p class="duplicate-note">Есть дубликаты — нажмите, чтобы открыть карточку</p>
+                    {% else %}
+                        <p class="duplicate-note muted-note">Единственная копия остаётся в коллекции</p>
+                    {% endif %}
+                </article>
+
+                {% if is_duplicate %}
+                <div class="card-modal" id="card-modal-{{ user_card.card.id }}">
+                    <div class="card-modal-backdrop" data-close-modal></div>
+                    <div class="card-modal-content rarity-frame-{{ user_card.card.rarity }}">
+                        <button class="modal-close" type="button" data-close-modal>&times;</button>
+
+                        <div class="card-modal-hero">
+                            <div class="card-emblem card-emblem-large rarity-emblem-{{ user_card.card.rarity }}">
+                                {% if user_card.card.rarity == 'common' %}C{% elif user_card.card.rarity == 'rare' %}R{% elif user_card.card.rarity == 'epic' %}E{% else %}L{% endif %}
+                            </div>
+                            <div>
+                                <div class="card-modal-badges">
+                                    <span class="card-id-badge">#{{ user_card.card.id }}</span>
+                                    <span class="rarity-badge rarity-badge-{{ user_card.card.rarity }}">{{ user_card.card.rarity }}</span>
+                                </div>
+                                <h2>{{ user_card.card.name }}</h2>
+                                <p class="card-subject-line">{{ user_card.card.subject }}</p>
+                            </div>
+                        </div>
+
+                        <div class="card-modal-grid">
+                            <div class="modal-info-block">
+                                <span>Описание</span>
+                                <p>{{ user_card.card.description }}</p>
+                            </div>
+                            <div class="modal-info-block">
+                                <span>Копий в коллекции</span>
+                                <p>{{ user_card.quantity }}</p>
+                            </div>
+                            <div class="modal-info-block accent-block">
+                                <span>Цена продажи</span>
+                                <p>{{ sell_price }} монет</p>
+                            </div>
+                            <div class="modal-info-block">
+                                <span>После продажи останется</span>
+                                <p>{{ user_card.quantity - 1 }} шт.</p>
+                            </div>
+                        </div>
+
+                        <form method="post" action="{{ url_for('sell_card', card_id=user_card.card.id) }}" class="sell-form-row">
+                            <button type="submit" class="btn">Продать дубликат</button>
+                        </form>
+                    </div>
+                </div>
+                {% endif %}
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="shop-item empty-collection-state">
+            <h2>Коллекция пока пуста</h2>
+            <p>Пройдите тесты, получите монеты и откройте свой первый пакет карточек в магазине.</p>
+            <a href="{{ url_for('shop') }}" class="btn">Перейти в магазин</a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="profile-container {% if user.profile_theme != 'default' %}{{ user.profile_theme }}{% endif %}">
+    <div class="profile-header">
+        <div class="avatar-container">
+            <img src="https://via.placeholder.com/150" alt="Avatar" class="avatar {% if user.avatar_frame != 'none' %}{{ user.avatar_frame }}{% endif %}">
+            <h1>{{ user.username }}</h1>
+        </div>
+        <div class="profile-stats">
+            <div class="stat">
+                <span class="stat-label">Монеты</span>
+                <span class="stat-value">{{ user.coins }}</span>
+            </div>
+            <div class="stat">
+                <span class="stat-label">Карточки</span>
+                <span class="stat-value">{{ user.cards|length }}</span>
+            </div>
+            <div class="stat">
+                <span class="stat-label">С нами</span>
+                <span class="stat-value">{{ user.created_at.strftime('%d.%m.%Y') }}</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="exchange-card">
+        <h3>Карточки пользователя</h3>
+        {% if user.cards %}
+            <div class="items-grid">
+                {% for user_card in user.cards %}
+                    <div class="shop-item">
+                        <h4>{{ user_card.card.name }}</h4>
+                        <p>ID: {{ user_card.card.id }}</p>
+                        <p>Количество: {{ user_card.quantity }}</p>
+                        <p>Редкость: {{ user_card.card.rarity }}</p>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p>У пользователя пока нет карточек.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

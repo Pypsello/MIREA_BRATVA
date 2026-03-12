@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="exchange-container">
+    <h1>Обмен карточками</h1>
+    <p>Предложите другому игроку свою карточку и запросите его карточку взамен.</p>
+
+    <div class="exchange-grid">
+        <div class="exchange-card">
+            <h2>Создать предложение</h2>
+            <form method="POST">
+                <div class="form-group">
+                    <label for="to_user_id">Кому отправить</label>
+                    <select id="to_user_id" name="to_user_id" required>
+                        <option value="">Выберите игрока</option>
+                        {% for user in users %}
+                            <option value="{{ user.id }}">{{ user.username }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="offered_card_id">Моя карточка</label>
+                    <select id="offered_card_id" name="offered_card_id" required>
+                        <option value="">Выберите карточку</option>
+                        {% for user_card in my_cards %}
+                            <option value="{{ user_card.card.id }}">{{ user_card.card.name }} ({{ user_card.quantity }} шт.)</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="requested_card_id">Хочу получить карточку с id</label>
+                    <input id="requested_card_id" name="requested_card_id" type="number" min="1" required>
+                    <small>Посмотреть id карточек можно у другого пользователя в профиле или в базе.</small>
+                </div>
+
+                <button type="submit" class="btn">Отправить предложение</button>
+            </form>
+        </div>
+
+        <div class="exchange-card">
+            <h2>Входящие предложения</h2>
+            {% if incoming_offers %}
+                {% for offer in incoming_offers %}
+                    <div class="trade-offer">
+                        <p><strong>{{ offer.from_user.username }}</strong> предлагает <strong>{{ offer.offered_card.name }}</strong></p>
+                        <p>и хочет получить <strong>{{ offer.requested_card.name }}</strong></p>
+                        <div class="trade-actions">
+                            <form method="POST" action="{{ url_for('accept_exchange', offer_id=offer.id) }}">
+                                <button type="submit" class="btn">Принять</button>
+                            </form>
+                            <form method="POST" action="{{ url_for('reject_exchange', offer_id=offer.id) }}">
+                                <button type="submit" class="btn btn-secondary">Отклонить</button>
+                            </form>
+                        </div>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <p>Пока нет входящих предложений.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="exchange-card">
+        <h2>Мои отправленные предложения</h2>
+        {% if outgoing_offers %}
+            <div class="items-grid">
+                {% for offer in outgoing_offers %}
+                    <div class="shop-item">
+                        <h3>{{ offer.to_user.username }}</h3>
+                        <p>Вы отдаёте: {{ offer.offered_card.name }}</p>
+                        <p>Вы получаете: {{ offer.requested_card.name }}</p>
+                        <p>Статус: {{ offer.status }}</p>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p>Вы ещё не отправляли предложения.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
