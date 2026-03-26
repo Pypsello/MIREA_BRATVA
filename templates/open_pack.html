@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+
+{% block title %}Открытие наборов{% endblock %}
+
+{% block content %}
+<div class="pack-select-page">
+    <section class="pack-opening-stage">
+        <span class="eyebrow">Открытие карточек</span>
+        <h1>Рулетка карточек преподавателей</h1>
+        <p>Открывайте карточки преподавателей и получайте 1 / 3 / 5 за одно открытие.</p>
+
+        <div class="pack-option-grid">
+            {% for qty in quantity_options %}
+            <form method="post" class="pack-option-card">
+                <input type="hidden" name="quantity" value="{{ qty }}">
+                <div class="pack-option-count">{{ qty }}</div>
+                <h3>{{ qty }} {% if qty == 1 %}пакет{% elif qty < 5 %}пакета{% else %}пакетов{% endif %}</h3>
+                <p>Стоимость: <strong>{{ card_pack.price * qty }}</strong> монет</p>
+                <button type="submit" class="btn btn-pack">Купить и открыть</button>
+            </form>
+            {% endfor %}
+        </div>
+
+        <div class="pack-actions">
+            <a href="{{ url_for('shop') }}" class="btn btn-secondary">Вернуться в магазин</a>
+        </div>
+    </section>
+</div>
+{% endblock %}

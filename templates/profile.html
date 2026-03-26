@@ -4,41 +4,229 @@
 <div class="profile-container {% if user.profile_theme != 'default' %}{{ user.profile_theme }}{% endif %}">
     <div class="profile-header">
         <div class="avatar-container">
-            <img src="https://via.placeholder.com/150" alt="Avatar" class="avatar {% if user.avatar_frame != 'none' %}{{ user.avatar_frame }}{% endif %}">
-            <h1>{{ user.username }}</h1>
+            <div class="profile-avatar-shell" title="{% if user.avatar_frame == 'none' %}Стандартная рамка{% else %}Установлена рамка{% endif %}">
+                <div class="avatar avatar-letter">{% set avatar_symbol = get_avatar_icon_symbol(user) %}{% if avatar_symbol %}<span class="avatar-icon-symbol">{{ avatar_symbol }}</span>{% else %}{{ user.username[0]|upper }}{% endif %}</div>
+                {% if user.avatar_frame and user.avatar_frame != 'none' %}
+                <img class="avatar-frame-image" src="{{ url_for('static', filename='frames/' ~ user.avatar_frame ~ '.png') }}" alt="Рамка профиля">
+                {% endif %}
+            </div>
+            <div>
+                <h1>{{ user.username }}</h1>
+                <p class="profile-subtitle">Участник MIREA_BRATVA с {{ user.created_at.strftime('%d.%m.%Y') }}</p>
+            </div>
         </div>
-        <div class="profile-stats">
+        <div class="profile-stats items-grid">
             <div class="stat">
                 <span class="stat-label">Монеты</span>
                 <span class="stat-value">{{ user.coins }}</span>
             </div>
             <div class="stat">
-                <span class="stat-label">Карточки</span>
+                <span class="stat-label">Уникальные карточки</span>
                 <span class="stat-value">{{ user.cards|length }}</span>
             </div>
             <div class="stat">
-                <span class="stat-label">С нами</span>
-                <span class="stat-value">{{ user.created_at.strftime('%d.%m.%Y') }}</span>
+                <span class="stat-label">Активная рамка</span>
+                <span class="stat-value">{% if user.avatar_frame == 'none' %}Стандартная{% else %}Выбрана{% endif %}</span>
             </div>
         </div>
     </div>
 
+    <div class="profile-sections items-grid profile-sections-grid">
+        <section class="shop-item profile-bio-card">
+            <h3>Описание</h3>
+            {% if is_owner %}
+            <form method="post" class="profile-form-stack">
+                <input type="hidden" name="action" value="update_profile">
+                <textarea name="bio" rows="5" maxlength="400" placeholder="Расскажите о себе, любимых карточках или интересах...">{{ user.bio or '' }}</textarea>
+                <button type="submit" class="btn">Сохранить описание</button>
+            </form>
+            {% else %}
+                <p>{{ user.bio or 'Пользователь пока не добавил описание.' }}</p>
+            {% endif %}
+        </section>
+
+        <section class="shop-item profile-frame-card">
+            <h3>Рамка профиля</h3>
+            {% if is_owner %}
+            <form method="post" class="profile-form-stack">
+                <input type="hidden" name="action" value="set_frame">
+                <label for="avatar_frame">Выберите рамку</label>
+                <select name="avatar_frame" id="avatar_frame">
+                    <option value="none" {% if user.avatar_frame == 'none' %}selected{% endif %}>Стандартная рамка</option>
+                    {% for frame in owned_frames %}
+                    {% set frame_code = frame.image_url or ('frame-' ~ frame.id) %}
+                    <option value="{{ frame_code }}" {% if user.avatar_frame == frame_code %}selected{% endif %}>{{ frame.name }}</option>
+                    {% endfor %}
+                </select>
+                <button type="submit" class="btn">Применить рамку</button>
+            </form>
+            <p class="profile-note">Купленные рамки доступны только один раз на аккаунт, но переключать их можно бесплатно.</p>
+            {% else %}
+                <p>{% if user.avatar_frame == 'none' %}Пользователь использует стандартную рамку.{% else %}У пользователя установлена специальная рамка.{% endif %}</p>
+            {% endif %}
+        </section>
+
+        <section class="shop-item profile-frame-card">
+            <h3>Иконка профиля</h3>
+            {% if is_owner %}
+            <form method="post" class="profile-form-stack">
+                <input type="hidden" name="action" value="set_icon">
+                <label for="avatar_icon">Выберите иконку</label>
+                <select name="avatar_icon" id="avatar_icon">
+                    {% for icon in avatar_icons %}
+                    <option value="{{ icon.code }}" {% if user.avatar_icon == icon.code %}selected{% endif %}>{{ icon.label }}</option>
+                    {% endfor %}
+                </select>
+                <button type="submit" class="btn">Применить иконку</button>
+            </form>
+            <p class="profile-note">Можно свободно переключаться между предложенными иконками.</p>
+            {% else %}
+                <p>{% set avatar_symbol = get_avatar_icon_symbol(user) %}{% if avatar_symbol %}У пользователя установлена иконка {{ avatar_symbol }}.{% else %}Пользователь использует буквенную иконку.{% endif %}</p>
+            {% endif %}
+        </section>
+    </div>
+
     <div class="exchange-card">
-        <h3>Карточки пользователя</h3>
+        <h3>{% if is_owner %}Мои карточки{% else %}Карточки пользователя{% endif %}</h3>
         {% if user.cards %}
-            <div class="items-grid">
+            <div class="items-grid collection-grid collection-grid-enhanced">
                 {% for user_card in user.cards %}
-                    <div class="shop-item">
-                        <h4>{{ user_card.card.name }}</h4>
-                        <p>ID: {{ user_card.card.id }}</p>
-                        <p>Количество: {{ user_card.quantity }}</p>
-                        <p>Редкость: {{ user_card.card.rarity }}</p>
+                <article class="shop-item card-tile card-showcase card-standard rarity-{{ user_card.card.rarity }} {% if not is_owner %}clickable-card{% endif %}"
+                         {% if not is_owner %}data-open-modal="profile-card-modal-{{ user_card.card.id }}"{% endif %}>
+                    <div class="card-showcase-glow"></div>
+                    <div class="card-showcase-top">
+                        <span class="rarity-badge rarity-badge-{{ user_card.card.rarity }}">{{ user_card.card.rarity }}</span>
                     </div>
+                    <div class="card-showcase-body">
+                        <div class="card-emblem rarity-emblem-{{ user_card.card.rarity }}">{{ get_card_letter(user_card.card) }}</div>
+                        <div class="card-copy">
+                            <h3>{{ user_card.card.name }}</h3>
+                            <p class="card-subject-line">Кафедра: {{ user_card.card.subject }}</p>
+                            <p class="card-description-preview">{{ user_card.card.description }}</p>
+                        </div>
+                    </div>
+                    <div class="card-stars-row">{{ get_card_stars_display(user_card.star_level) }}</div>
+                    <div class="card-meta-grid">
+                        <div class="meta-chip">
+                            <span>Количество</span>
+                            <strong>x{{ user_card.quantity }}</strong>
+                        </div>
+                    </div>
+                </article>
+
+                {% if not is_owner %}
+                <div class="card-modal" id="profile-card-modal-{{ user_card.card.id }}">
+                    <div class="card-modal-backdrop" data-close-modal></div>
+                    <div class="card-modal-content rarity-frame-{{ user_card.card.rarity }} compact-profile-modal">
+                        <button class="modal-close" type="button" data-close-modal>&times;</button>
+                        <div class="card-modal-hero compact-modal-hero">
+                            <div class="card-emblem card-emblem-large rarity-emblem-{{ user_card.card.rarity }}">{{ get_card_letter(user_card.card) }}</div>
+                            <div>
+                                <div class="card-modal-badges card-modal-badges-safe">
+                                    <span class="rarity-badge rarity-badge-{{ user_card.card.rarity }}">{{ user_card.card.rarity }}</span>
+                                </div>
+                                <h2>{{ user_card.card.name }}</h2>
+                                <p class="card-subject-line">Кафедра: {{ user_card.card.subject }}</p>
+                            </div>
+                        </div>
+                        <div class="card-modal-grid compact-modal-grid">
+                            <div class="modal-info-block">
+                                <span>Описание</span>
+                                <p>{{ user_card.card.description }}</p>
+                            </div>
+                            <div class="modal-info-block">
+                                <span>Копий у пользователя</span>
+                                <p>{{ user_card.quantity }}</p>
+                            </div>
+                            <div class="modal-info-block modal-info-block-full">
+                                <span>Звёздность</span>
+                                <p>{{ get_card_stars_display(user_card.star_level) }}</p>
+                            </div>
+                        </div>
+                        <div class="profile-card-actions">
+                            <a href="{{ url_for('propose_exchange', target_user_id=user.id, requested_card_id=user_card.card.id) }}" class="btn">Предложить обмен</a>
+                            <form method="post" action="{{ url_for('toggle_wishlist', card_id=user_card.card.id) }}">
+                                <button type="submit" class="icon-heart-btn {% if user_card.card.id in wishlist_ids %}active{% endif %}" title="Добавить в список желаемого">
+                                    {% if user_card.card.id in wishlist_ids %}♥{% else %}♡{% endif %}
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
                 {% endfor %}
             </div>
         {% else %}
             <p>У пользователя пока нет карточек.</p>
         {% endif %}
     </div>
+
+    {% if not is_owner %}
+    <div class="exchange-card">
+        <h3>Список желаемого пользователя</h3>
+        {% if viewed_wishlist_cards %}
+            <div class="items-grid collection-grid collection-grid-enhanced profile-wishlist-grid">
+                {% for card in viewed_wishlist_cards %}
+                <article class="shop-item card-tile card-showcase card-standard rarity-{{ card.rarity }} clickable-card"
+                         data-open-modal="wishlist-card-modal-{{ card.id }}">
+                    <div class="card-showcase-glow"></div>
+                    <div class="card-showcase-top">
+                        <span class="rarity-badge rarity-badge-{{ card.rarity }}">{{ card.rarity }}</span>
+                    </div>
+                    <div class="card-showcase-body">
+                        <div class="card-emblem rarity-emblem-{{ card.rarity }}">{{ get_card_letter(card) }}</div>
+                        <div class="card-copy">
+                            <h3>{{ card.name }}</h3>
+                            <p class="card-subject-line">Кафедра: {{ card.subject }}</p>
+                            <p class="card-description-preview">{{ card.description }}</p>
+                        </div>
+                    </div>
+                    <div class="card-stars-row">{{ get_card_stars_display(0) }}</div>
+                    <div class="card-meta-grid">
+                        <div class="meta-chip">
+                            <span>Статус</span>
+                            <strong>{% if card.id in wishlist_ids %}Есть в моём желаемом{% else %}Можно добавить к себе{% endif %}</strong>
+                        </div>
+                    </div>
+                </article>
+
+                <div class="card-modal" id="wishlist-card-modal-{{ card.id }}">
+                    <div class="card-modal-backdrop" data-close-modal></div>
+                    <div class="card-modal-content rarity-frame-{{ card.rarity }} compact-profile-modal">
+                        <button class="modal-close" type="button" data-close-modal>&times;</button>
+                        <div class="card-modal-hero compact-modal-hero">
+                            <div class="card-emblem card-emblem-large rarity-emblem-{{ card.rarity }}">{{ get_card_letter(card) }}</div>
+                            <div>
+                                <div class="card-modal-badges card-modal-badges-safe">
+                                    <span class="rarity-badge rarity-badge-{{ card.rarity }}">{{ card.rarity }}</span>
+                                </div>
+                                <h2>{{ card.name }}</h2>
+                                <p class="card-subject-line">Кафедра: {{ card.subject }}</p>
+                            </div>
+                        </div>
+                        <div class="card-modal-grid compact-modal-grid">
+                            <div class="modal-info-block modal-info-block-full">
+                                <span>Описание</span>
+                                <p>{{ card.description }}</p>
+                            </div>
+                        </div>
+                        <div class="profile-card-actions">
+                            <a href="{{ url_for('card_owners', card_id=card.id) }}" class="btn btn-secondary">У кого есть</a>
+                            <form method="post" action="{{ url_for('toggle_wishlist', card_id=card.id) }}">
+                                <button type="submit" class="icon-heart-btn {% if card.id in wishlist_ids %}active{% endif %}" title="Добавить в список желаемого">
+                                    {% if card.id in wishlist_ids %}♥{% else %}♡{% endif %}
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p>У пользователя пока нет карточек в списке желаемого.</p>
+        {% endif %}
+    </div>
+    {% endif %}
+
 </div>
 {% endblock %}

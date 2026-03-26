@@ -15,6 +15,8 @@ class User(UserMixin, db.Model):
     coins = db.Column(db.Integer, default=100)
     profile_theme = db.Column(db.String(50), default='default')
     avatar_frame = db.Column(db.String(50), default='none')
+    bio = db.Column(db.Text, default='')
+    owned_frames = db.Column(db.Text, default='[]')
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     last_daily_bonus = db.Column(db.DateTime, default=None)
     

@@ -5,47 +5,57 @@
     <h1>Магазин</h1>
     <p class="user-coins">Ваши монеты: {{ current_user.coins }}</p>
 
-    <div class="shop-categories">
-        <div class="category">
-            <h2>Рамки для аватара</h2>
-            <div class="items-grid">
-                {% for frame in frames %}
-                <div class="shop-item">
-                    <h3>{{ frame.name }}</h3>
-                    <p>{{ frame.description }}</p>
-                    <p class="price">{{ frame.price }} монет</p>
-                    <a href="{{ url_for('buy_item', item_id=frame.id) }}"
-                       class="btn"
-                       onclick="return confirm('Купить {{ frame.name }} за {{ frame.price }} монет?')">
-                        Купить
-                    </a>
-                </div>
+    <div class="shop-tabs" role="tablist">
+        <a href="{{ url_for('shop', tab='card_roulette') }}" class="shop-tab {% if active_tab == 'card_roulette' %}active{% endif %}">Рулетка карточек</a>
+        <a href="{{ url_for('shop', tab='frame_roulette') }}" class="shop-tab {% if active_tab == 'frame_roulette' %}active{% endif %}">Рулетка рамочек</a>
+    </div>
+
+    {% if active_tab == 'frame_roulette' %}
+    <div class="shop-panel">
+        <section class="category">
+            <h2>Рулетка рамочек для профиля</h2>
+            <div class="items-grid shop-grid-3">
+                {% for item in frame_packs %}
+                {% set meta = get_frame_pack_meta(item.image_url) %}
+                <article class="shop-item card-pack shop-card-template featured-pack frame-pack-card frame-pack-{{ meta.accent }}">
+                    <div class="roulette-icon">{{ meta.icon }}</div>
+                    <h3>{{ item.name }}</h3>
+                    <p class="shop-copy">{{ item.description }}</p>
+                    <ul class="rarity-chances compact-list">
+                        <li>Открытие: 1 / 3 / 5 прокруток</li>
+                        <li>Выпадают только {{ meta.label }}-рамочки</li>
+                        <li>Новая рамка добавляется в аккаунт автоматически</li>
+                        <li>После открытия рамку можно поставить в профиле</li>
+                    </ul>
+                    <p class="price">{{ item.price }} монет за 1 прокрутку</p>
+                    <a href="{{ url_for('open_frame_pack', item_id=item.id) }}" class="btn btn-pack">Крутить {{ meta.label }}</a>
+                </article>
                 {% endfor %}
             </div>
-        </div>
-
-        {% if card_pack %}
-        <div class="category">
-            <h2>Пакеты с карточками</h2>
-            <div class="items-grid">
-                <div class="shop-item card-pack">
-                    <h3>{{ card_pack.name }}</h3>
-                    <p>{{ card_pack.description }}</p>
-                    <p>Шансы выпадения:</p>
-                    <ul class="rarity-chances">
-                        <li>Обычные: 60%</li>
-                        <li>Редкие: 25%</li>
-                        <li>Эпические: 10%</li>
-                        <li>Легендарные: 5%</li>
-                    </ul>
-                    <p class="price">{{ card_pack.price }} монет</p>
-                    <form method="post" action="{{ url_for('buy_item', item_id=card_pack.id) }}" class="pack-purchase-form" onsubmit="return confirm('Купить пакет за {{ card_pack.price }} монет?')">
-                        <button type="submit" class="btn btn-pack" onclick="openCardPack()">Купить и открыть</button>
-                    </form>
-                </div>
-            </div>
-        </div>
-        {% endif %}
+        </section>
     </div>
+    {% else %}
+    <div class="shop-panel">
+        <section class="category">
+            <h2>Рулетка карточек преподавателей</h2>
+            <div class="items-grid shop-grid-3 shop-grid-single">
+                {% for item in card_products %}
+                <article class="shop-item card-pack shop-card-template featured-pack teacher-pack-card">
+                    <div class="roulette-icon">🎴</div>
+                    <h3>{{ item.name }}</h3>
+                    <p class="shop-copy">{{ item.description }}</p>
+                    <ul class="rarity-chances compact-list">
+                        <li>Открытие: 1 / 3 / 5 пакетов</li>
+                        <li>Анимация открытия как в прошлых версиях</li>
+                        <li>Выпадают карточки преподавателей разной редкости</li>
+                    </ul>
+                    <p class="price">{{ item.price }} монет за 1 пакет</p>
+                    <a href="{{ url_for('open_pack', item_id=item.id) }}" class="btn btn-pack">Перейти к открытию</a>
+                </article>
+                {% endfor %}
+            </div>
+        </section>
+    </div>
+    {% endif %}
 </div>
 {% endblock %}

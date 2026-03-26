@@ -1,19 +1,23 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="auth-form" style="max-width: 900px;">
+<div class="auth-form quiz-form-shell" style="max-width: 900px;">
     <h2>{{ quiz.title }}</h2>
-    <p>{{ quiz.subject }} · Награда {{ quiz.reward_coins }} монет</p>
+    <p>Кафедра: {{ quiz.subject }} · Награда {{ quiz.reward_coins }} монет</p>
 
-    <form method="POST">
+    <form method="POST" class="quiz-options-form">
         {% for question in questions %}
-            <div class="form-group">
-                <label><strong>{{ loop.index }}. {{ question.text }}</strong></label>
-                <label><input type="radio" name="question_{{ question.id }}" value="1" required> {{ question.option1 }}</label>
-                <label><input type="radio" name="question_{{ question.id }}" value="2"> {{ question.option2 }}</label>
-                <label><input type="radio" name="question_{{ question.id }}" value="3"> {{ question.option3 }}</label>
-                <label><input type="radio" name="question_{{ question.id }}" value="4"> {{ question.option4 }}</label>
-            </div>
+            <section class="question-card">
+                <h3>{{ loop.index }}. {{ question.text }}</h3>
+                <div class="quiz-option-list">
+                    {% for option_value, option_text in [(1, question.option1), (2, question.option2), (3, question.option3), (4, question.option4)] %}
+                    <label class="quiz-option-card">
+                        <input type="radio" name="question_{{ question.id }}" value="{{ option_value }}" {% if loop.first %}required{% endif %}>
+                        <span>{{ option_text }}</span>
+                    </label>
+                    {% endfor %}
+                </div>
+            </section>
         {% endfor %}
         <button type="submit" class="btn">Завершить тест</button>
     </form>

@@ -1,0 +1,36 @@
+{% macro showcase_card(card, rarity, letter, subject, description, stars='', top_badge='', meta_items=[], action_html='', owner_url='', owner_label='У кого есть') -%}
+<article class="shop-item card-tile card-showcase card-standard rarity-{{ rarity }}">
+    <div class="card-showcase-glow"></div>
+    <div class="card-showcase-top">
+        <span class="rarity-badge rarity-badge-{{ rarity }}">{{ rarity }}</span>
+        {% if top_badge %}<span class="card-top-pill">{{ top_badge }}</span>{% endif %}
+    </div>
+    <div class="card-showcase-body">
+        <div class="card-emblem rarity-emblem-{{ rarity }}">{{ letter }}</div>
+        <div class="card-copy">
+            <h3>{{ card.name }}</h3>
+            <p class="card-subject-line">Кафедра: {{ subject }}</p>
+            <p class="card-description-preview">{{ description }}</p>
+        </div>
+    </div>
+    {% if stars %}
+    <div class="card-stars-row" aria-label="Звёздность">{{ stars }}</div>
+    {% endif %}
+    {% if meta_items %}
+    <div class="card-meta-grid">
+        {% for item in meta_items %}
+        <div class="meta-chip {% if item.accent %}meta-chip-accent{% endif %}">
+            <span>{{ item.label }}</span>
+            <strong>{{ item.value }}</strong>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    {% if action_html or owner_url %}
+    <div class="card-action-slot {% if action_html and owner_url %}card-action-slot-dual{% endif %}">
+        {% if action_html %}{{ action_html|safe }}{% endif %}
+        {% if owner_url %}<a class="btn btn-secondary" href="{{ owner_url }}">{{ owner_label }}</a>{% endif %}
+    </div>
+    {% endif %}
+</article>
+{%- endmacro %}

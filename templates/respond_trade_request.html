@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% from "_card_macros.html" import showcase_card %}
+{% block content %}
+<div class="exchange-container">
+    <h1>Отклик на запрос</h1>
+    <div class="exchange-card">
+        <h2>Пользователь {{ trade_request.requester.username }} хочет получить</h2>
+        {{ showcase_card(card=trade_request.requested_card, rarity=trade_request.requested_card.rarity, letter=get_card_letter(trade_request.requested_card), subject=trade_request.requested_card.subject, description=trade_request.requested_card.description, stars='', meta_items=[{'label':'Запрос','value':'Открыт'}], action_html='') }}
+    </div>
+    <div class="exchange-card">
+        <h2>Выберите, что хотите получить от пользователя</h2>
+        <form method="POST">
+            <input type="hidden" name="requested_card_id" id="requested_card_input">
+            <div class="items-grid collection-grid collection-grid-enhanced selectable-grid">
+                {% for user_card in target_cards %}
+                <button type="button" class="card-select-button" data-card-choice="{{ user_card.card.id }}">
+                    {{ showcase_card(card=user_card.card, rarity=user_card.card.rarity, letter=get_card_letter(user_card.card), subject=user_card.card.subject, description=user_card.card.description, stars=get_card_stars_display(user_card.star_level), meta_items=[{'label':'Копий у пользователя','value':user_card.quantity}], action_html='') }}
+                </button>
+                {% endfor %}
+            </div>
+            <div class="exchange-form-actions"><button type="submit" class="btn">Отправить предложение</button></div>
+        </form>
+    </div>
+</div>
+<script>document.addEventListener('DOMContentLoaded',()=>{const input=document.getElementById('requested_card_input');document.querySelectorAll('[data-card-choice]').forEach(btn=>btn.addEventListener('click',()=>{document.querySelectorAll('[data-card-choice]').forEach(b=>b.classList.remove('selected'));btn.classList.add('selected');input.value=btn.dataset.cardChoice;}));});</script>
+{% endblock %}

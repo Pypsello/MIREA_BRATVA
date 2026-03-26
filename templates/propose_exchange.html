@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% from "_card_macros.html" import showcase_card %}
+{% block content %}
+<div class="exchange-container">
+    <h1>Предложить обмен</h1>
+    <div class="exchange-card">
+        <h2>Хочу получить</h2>
+        {{ showcase_card(card=requested_user_card.card, rarity=requested_user_card.card.rarity, letter=get_card_letter(requested_user_card.card), subject=requested_user_card.card.subject, description=requested_user_card.card.description, stars=get_card_stars_display(requested_user_card.star_level), meta_items=[{'label':'Владелец','value':target_user.username},{'label':'Копий у пользователя','value':requested_user_card.quantity}], action_html='') }}
+    </div>
+    <div class="exchange-card">
+        <h2>Выберите свою карточку для обмена</h2>
+        <form method="POST">
+            <input type="hidden" name="offered_card_id" id="offered_card_input">
+            <div class="items-grid collection-grid collection-grid-enhanced selectable-grid">
+                {% for user_card in my_cards %}
+                <button type="button" class="card-select-button" data-card-choice="{{ user_card.card.id }}">
+                    {{ showcase_card(card=user_card.card, rarity=user_card.card.rarity, letter=get_card_letter(user_card.card), subject=user_card.card.subject, description=user_card.card.description, stars=get_card_stars_display(user_card.star_level), meta_items=[{'label':'Моих копий','value':user_card.quantity}], action_html='') }}
+                </button>
+                {% endfor %}
+            </div>
+            <div class="exchange-form-actions"><button type="submit" class="btn">Предложить обмен</button></div>
+        </form>
+    </div>
+</div>
+<script>document.addEventListener('DOMContentLoaded',()=>{const input=document.getElementById('offered_card_input');document.querySelectorAll('[data-card-choice]').forEach(btn=>btn.addEventListener('click',()=>{document.querySelectorAll('[data-card-choice]').forEach(b=>b.classList.remove('selected'));btn.classList.add('selected');input.value=btn.dataset.cardChoice;}));});</script>
+{% endblock %}

@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% from "_card_macros.html" import showcase_card %}
+
+{% block content %}
+<div class="collection-page">
+    <div class="collection-hero hero-slim">
+        <div>
+            <h1>Все карточки</h1>
+            <p class="collection-hint">Смотрите все карточки проекта и добавляйте интересующие в список желаемого.</p>
+        </div>
+        <div class="collection-stats">
+            <div class="collection-stat">
+                <span class="collection-stat-label">Всего карточек</span>
+                <strong>{{ cards|length }}</strong>
+            </div>
+            <div class="collection-stat">
+                <span class="collection-stat-label">В желаемом</span>
+                <strong>{{ wishlist_ids|length }}</strong>
+            </div>
+        </div>
+    </div>
+
+    <div class="items-grid collection-grid collection-grid-enhanced">
+        {% for card in cards %}
+        {% set action_html %}
+        <form method="post" action="{{ url_for('toggle_wishlist', card_id=card.id) }}" class="wishlist-inline-form">
+            <button type="submit" class="btn btn-secondary">{% if card.id in wishlist_ids %}Убрать из желаемого{% else %}Добавить в желаемое{% endif %}</button>
+        </form>
+        {% endset %}
+        {{ showcase_card(
+            card=card,
+            rarity=card.rarity,
+            letter=get_card_letter(card),
+            subject=card.subject,
+            description=card.description,
+            stars=get_card_stars_display(0),
+            meta_items=[
+                {'label': 'Статус', 'value': 'Есть в коллекции' if card.id in owned_ids else 'Ещё нет'},
+                {'label': 'Коллекционная ценность', 'value': card.base_price}
+            ],
+            action_html=action_html,
+            owner_url=url_for('card_owners', card_id=card.id)
+        ) }}
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

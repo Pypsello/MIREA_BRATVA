@@ -1,65 +1,76 @@
 {% extends "base.html" %}
-
+{% from "_card_macros.html" import showcase_card %}
 {% block content %}
 <div class="exchange-container">
     <h1>Обмен карточками</h1>
-    <p>Предложите другому игроку свою карточку и запросите его карточку взамен.</p>
+    <p>Создайте запрос на нужную карточку или откликайтесь на запросы других пользователей.</p>
 
-    <div class="exchange-grid">
+    <div class="exchange-grid exchange-grid-single">
         <div class="exchange-card">
-            <h2>Создать предложение</h2>
-            <form method="POST">
+            <h2>Создать запрос</h2>
+            <form method="POST" class="profile-form-stack">
                 <div class="form-group">
-                    <label for="to_user_id">Кому отправить</label>
-                    <select id="to_user_id" name="to_user_id" required>
-                        <option value="">Выберите игрока</option>
-                        {% for user in users %}
-                            <option value="{{ user.id }}">{{ user.username }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-
-                <div class="form-group">
-                    <label for="offered_card_id">Моя карточка</label>
-                    <select id="offered_card_id" name="offered_card_id" required>
+                    <label for="requested_card_id">Какую карточку хотите получить</label>
+                    <select id="requested_card_id" name="requested_card_id" required>
                         <option value="">Выберите карточку</option>
-                        {% for user_card in my_cards %}
-                            <option value="{{ user_card.card.id }}">{{ user_card.card.name }} ({{ user_card.quantity }} шт.)</option>
-                        {% endfor %}
+                        {% for card in cards %}<option value="{{ card.id }}">{{ card.name }} · {{ card.subject }} · {{ card.rarity }}</option>{% endfor %}
                     </select>
                 </div>
-
-                <div class="form-group">
-                    <label for="requested_card_id">Хочу получить карточку с id</label>
-                    <input id="requested_card_id" name="requested_card_id" type="number" min="1" required>
-                    <small>Посмотреть id карточек можно у другого пользователя в профиле или в базе.</small>
-                </div>
-
-                <button type="submit" class="btn">Отправить предложение</button>
+                <button type="submit" class="btn">Опубликовать запрос</button>
             </form>
         </div>
 
         <div class="exchange-card">
-            <h2>Входящие предложения</h2>
-            {% if incoming_offers %}
-                {% for offer in incoming_offers %}
-                    <div class="trade-offer">
-                        <p><strong>{{ offer.from_user.username }}</strong> предлагает <strong>{{ offer.offered_card.name }}</strong></p>
-                        <p>и хочет получить <strong>{{ offer.requested_card.name }}</strong></p>
-                        <div class="trade-actions">
-                            <form method="POST" action="{{ url_for('accept_exchange', offer_id=offer.id) }}">
-                                <button type="submit" class="btn">Принять</button>
-                            </form>
-                            <form method="POST" action="{{ url_for('reject_exchange', offer_id=offer.id) }}">
-                                <button type="submit" class="btn btn-secondary">Отклонить</button>
-                            </form>
-                        </div>
+            <h2>Открытые запросы</h2>
+            {% if open_requests %}
+                {% for trade_request in open_requests %}
+                <div class="trade-offer">
+                    <p><strong>{{ trade_request.requester.username }}</strong> хочет получить <strong>{{ trade_request.requested_card.name }}</strong></p>
+                    <p>Кафедра: {{ trade_request.requested_card.subject }} · Редкость: {{ trade_request.requested_card.rarity }}</p>
+                    <div class="trade-actions">
+                        <a class="btn btn-secondary" href="{{ url_for('view_profile', user_id=trade_request.requester.id) }}">Профиль</a>
+                        <a class="btn" href="{{ url_for('respond_trade_request', request_id=trade_request.id) }}">Откликнуться</a>
                     </div>
+                </div>
                 {% endfor %}
-            {% else %}
-                <p>Пока нет входящих предложений.</p>
-            {% endif %}
+            {% else %}<p>Пока открытых запросов нет.</p>{% endif %}
         </div>
+    </div>
+
+    <div class="exchange-card">
+        <h2>Мои запросы</h2>
+        {% if my_requests %}
+            <div class="items-grid">
+            {% for trade_request in my_requests %}
+                <div class="shop-item">
+                    <h3>{{ trade_request.requested_card.name }}</h3>
+                    <p>Статус: {{ trade_request.status }}</p>
+                    <p>Создан: {{ trade_request.created_at.strftime('%d.%m.%Y %H:%M') }}</p>
+                    {% if trade_request.status == 'open' %}
+                    <form method="POST" action="{{ url_for('close_trade_request', request_id=trade_request.id) }}">
+                        <button type="submit" class="btn btn-secondary">Закрыть запрос</button>
+                    </form>
+                    {% endif %}
+                </div>
+            {% endfor %}
+            </div>
+        {% else %}<p>У вас пока нет запросов.</p>{% endif %}
+    </div>
+
+    <div class="exchange-card">
+        <h2>Входящие предложения</h2>
+        {% if incoming_offers %}
+            {% for offer in incoming_offers %}
+                <div class="trade-offer">
+                    <p><strong>{{ offer.from_user.username }}</strong> предлагает <strong>{{ offer.offered_card.name }}</strong></p>
+                    <p>и хочет получить <strong>{{ offer.requested_card.name }}</strong></p>
+                    <div class="trade-actions">
+                        <form method="POST" action="{{ url_for('accept_exchange', offer_id=offer.id) }}"><button type="submit" class="btn">Принять</button></form>
+                        <form method="POST" action="{{ url_for('reject_exchange', offer_id=offer.id) }}"><button type="submit" class="btn btn-secondary">Отклонить</button></form>
+                    </div>
+                </div>
+            {% endfor %}
+        {% else %}<p>Пока нет входящих предложений.</p>{% endif %}
     </div>
 
     <div class="exchange-card">
@@ -75,9 +86,7 @@
                     </div>
                 {% endfor %}
             </div>
-        {% else %}
-            <p>Вы ещё не отправляли предложения.</p>
-        {% endif %}
+        {% else %}<p>Вы пока не отправляли обмены.</p>{% endif %}
     </div>
 </div>
 {% endblock %}
