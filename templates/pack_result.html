@@ -3,53 +3,73 @@
 {% block title %}Открытие пака{% endblock %}
 
 {% block content %}
-<div class="pack-result-page">
-    <div class="pack-opening-stage" id="pack-opening-stage">
+<div class="pack-result-page pack-mode-{{ pack_count }}">
+    <div class="pack-opening-stage" id="pack-opening-stage" data-pack-count="{{ pack_count }}">
         <div class="opening-copy">
             <span class="eyebrow">Открытие набора</span>
-            <h1>Пакет куплен</h1>
-            <p>Нажмите на пакет ниже и откройте свою новую карточку.</p>
+            <h1>{% if pack_count > 1 %}Пакеты куплены{% else %}Пакет куплен{% endif %}</h1>
+            <p>
+                {% if pack_count == 1 %}
+                Нажмите на пакет ниже и откройте свою новую карточку.
+                {% elif pack_count == 3 %}
+                Нажмите на стопку пакетов и откройте тройной набор с каскадной анимацией.
+                {% else %}
+                Нажмите на большую стопку и откройте массовый набор с усиленной анимацией.
+                {% endif %}
+            </p>
         </div>
 
-        <button class="pack-visual rarity-{{ card.rarity }}" id="reveal-pack-button" type="button">
+        <button class="pack-visual rarity-{{ top_rarity }} pack-visual-{{ pack_count }}" id="reveal-pack-button" type="button" data-pack-count="{{ pack_count }}">
+            <span class="pack-stack pack-stack-back"></span>
+            <span class="pack-stack pack-stack-mid"></span>
             <span class="pack-visual-glow"></span>
-            <span class="pack-label">CARD PACK</span>
-            <span class="pack-tap">Нажмите, чтобы открыть</span>
+            <span class="pack-burst"></span>
+            <span class="pack-label">MIREA_BRATVA</span>
+            <span class="pack-count-chip">x{{ pack_count }}</span>
+            <span class="pack-tap">
+                {% if pack_count == 1 %}Нажмите, чтобы открыть{% elif pack_count == 3 %}Нажмите, чтобы открыть 3 пакета{% else %}Нажмите, чтобы открыть 5 пакетов{% endif %}
+            </span>
         </button>
     </div>
 
     <div class="pack-reveal-stage hidden" id="pack-reveal-stage">
-        <div class="result-banner rarity-banner-{{ card.rarity }}">
-            <span>Выпала карточка</span>
-            <strong>{{ card.rarity|upper }}</strong>
+        <div class="result-banner rarity-banner-{{ top_rarity }}">
+            <span>Открытие завершено</span>
+            <strong>{{ pack_count }} {% if pack_count == 1 %}карточка{% elif pack_count < 5 %}карточки{% else %}карточек{% endif %}</strong>
         </div>
 
-        <article class="revealed-card rarity-{{ card.rarity }}" id="revealed-card">
-            <div class="card-showcase-glow"></div>
-            <div class="revealed-top">
-                <span class="card-id-badge">#{{ card.id }}</span>
-                <span class="rarity-badge rarity-badge-{{ card.rarity }}">{{ card.rarity }}</span>
-            </div>
-
-            <div class="revealed-body">
-                <div class="card-emblem card-emblem-xl rarity-emblem-{{ card.rarity }}">
-                    {% if card.rarity == 'common' %}C{% elif card.rarity == 'rare' %}R{% elif card.rarity == 'epic' %}E{% else %}L{% endif %}
+        <div class="revealed-cards-grid {% if pack_count == 1 %}single-reveal{% endif %}">
+            {% for item in cards_payload %}
+            {% set card = item.card %}
+            <article class="revealed-card rarity-{{ card.rarity }}" data-revealed-card>
+                <div class="card-showcase-glow"></div>
+                <div class="revealed-top">
+                    <span class="card-id-badge">#{{ card.id }}</span>
+                    <span class="rarity-badge rarity-badge-{{ card.rarity }}">{{ card.rarity|upper }}</span>
                 </div>
-                <h2>{{ card.name }}</h2>
-                <p class="card-subject-line">{{ card.subject }}</p>
-                <p class="revealed-description">{{ card.description }}</p>
-            </div>
 
-            <div class="revealed-meta">
-                <div class="meta-chip"><span>Редкость</span><strong>{{ card.rarity }}</strong></div>
-                <div class="meta-chip"><span>Базовая ценность</span><strong>{{ card.base_price }}</strong></div>
-                <div class="meta-chip"><span>Теперь копий</span><strong>x{{ duplicate_count }}</strong></div>
-            </div>
-        </article>
+                <div class="revealed-body">
+                    <div class="card-emblem card-emblem-xl rarity-emblem-{{ card.rarity }}">
+                        {% if card.rarity == 'common' %}C{% elif card.rarity == 'rare' %}R{% elif card.rarity == 'epic' %}E{% else %}L{% endif %}
+                    </div>
+                    <h2>{{ card.name }}</h2>
+                    <p class="card-subject-line">Кафедра: {{ card.subject }}</p>
+                    <p class="revealed-description">{{ card.description }}</p>
+                </div>
+
+                <div class="revealed-meta">
+                    <div class="meta-chip"><span>Редкость</span><strong>{{ card.rarity }}</strong></div>
+                    <div class="meta-chip"><span>Коллекционная ценность</span><strong>{{ card.base_price }}</strong></div>
+                    <div class="meta-chip"><span>Теперь копий</span><strong>x{{ item.duplicate_count }}</strong></div>
+                </div>
+            </article>
+            {% endfor %}
+        </div>
 
         <div class="pack-actions">
             <a href="{{ url_for('collection') }}" class="btn">В коллекцию</a>
-            <a href="{{ url_for('shop') }}" class="btn btn-secondary">Открыть ещё один</a>
+            <a href="{{ url_for('open_pack', item_id=pack_item_id) if pack_item_id else url_for('open_pack') }}" class="btn btn-secondary">Открыть ещё один</a>
+            <a href="{{ url_for('shop') }}" class="btn btn-secondary">Вернуться в магазин</a>
         </div>
     </div>
 </div>

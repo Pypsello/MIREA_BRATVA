@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+
+{% block title %}Открытие рулетки рамочек{% endblock %}
+
+{% block content %}
+<div class="pack-result-page pack-mode-{{ results|length }}">
+    <div class="pack-opening-stage frame-opening-stage" id="pack-opening-stage" data-pack-count="{{ results|length }}">
+        <div class="opening-copy">
+            <span class="eyebrow">Рулетка рамочек {{ pack_meta.label }}</span>
+            <h1>{% if results|length > 1 %}Прокрутки куплены{% else %}Прокрутка куплена{% endif %}</h1>
+            <p>
+                {% if results|length == 1 %}
+                Нажмите на рулетку ниже, чтобы открыть свою новую рамочку.
+                {% elif results|length == 3 %}
+                Нажмите на стопку рулеток и откройте тройной результат.
+                {% else %}
+                Нажмите на большую стопку и откройте массовый результат рулетки рамочек.
+                {% endif %}
+            </p>
+        </div>
+
+        <button class="pack-visual frame-pack-visual frame-pack-visual-{{ pack_meta.accent }} pack-visual-{{ results|length }}" id="reveal-pack-button" type="button" data-pack-count="{{ results|length }}">
+            <span class="pack-stack pack-stack-back"></span>
+            <span class="pack-stack pack-stack-mid"></span>
+            <span class="pack-visual-glow"></span>
+            <span class="pack-burst"></span>
+            <span class="pack-label">{{ pack_meta.icon }} {{ pack_meta.label }}</span>
+            <span class="pack-count-chip">x{{ results|length }}</span>
+            <span class="pack-tap">
+                {% if results|length == 1 %}Нажмите, чтобы открыть{% elif results|length == 3 %}Нажмите, чтобы открыть 3 рулетки{% else %}Нажмите, чтобы открыть 5 рулеток{% endif %}
+            </span>
+        </button>
+    </div>
+
+    <div class="pack-reveal-stage hidden" id="pack-reveal-stage">
+        <div class="result-banner rarity-banner-rare">
+            <span>Рулетка завершена</span>
+            <strong>{{ results|length }} {% if results|length == 1 %}рамочка{% elif results|length < 5 %}рамочки{% else %}рамочек{% endif %}</strong>
+        </div>
+
+        <div class="revealed-cards-grid {% if results|length == 1 %}single-reveal{% endif %}">
+            {% for item in results %}
+            {% set frame_code = get_frame_code(item.frame) %}
+            {% set asset_url = get_frame_asset_url(item.frame) %}
+            <article class="revealed-card rarity-{{ 'legendary' if pack_meta.accent == 'fire' else 'epic' }}" data-revealed-card>
+                <div class="card-showcase-glow"></div>
+                <div class="revealed-top">
+                    <span class="card-id-badge">Рамка</span>
+                    <span class="rarity-badge rarity-badge-{{ 'legendary' if pack_meta.accent == 'fire' else 'epic' }}">{{ pack_meta.label|upper }}</span>
+                </div>
+                <div class="revealed-body">
+                    <div class="card-emblem card-emblem-xl rarity-emblem-{{ 'legendary' if pack_meta.accent == 'fire' else 'epic' }} frame-emblem-preview {% if asset_url %}frame-emblem-image{% endif %}" {% if asset_url %}style="background-image:url('{{ asset_url }}')"{% endif %}>
+                        {% if not asset_url %}{{ pack_meta.icon }}{% endif %}
+                    </div>
+                    <h2>{{ item.frame.name }}</h2>
+                    <p class="card-subject-line">Тип: рамочка для профиля</p>
+                    <p class="revealed-description">{{ item.frame.description }}</p>
+                </div>
+                <div class="revealed-meta">
+                    <div class="meta-chip"><span>Набор</span><strong>{{ pack_meta.label }}</strong></div>
+                    <div class="meta-chip"><span>Статус</span><strong>{% if item.is_new %}Новая{% else %}Дубликат{% endif %}</strong></div>
+                    <div class="meta-chip"><span>Результат</span><strong>{% if item.is_new %}Добавлена{% else %}+{{ item.compensation }} монет{% endif %}</strong></div>
+                </div>
+            </article>
+            {% endfor %}
+        </div>
+
+        <div class="pack-actions">
+            <a href="{{ url_for('open_frame_pack', item_id=pack_item_id) if pack_item_id else url_for('open_frame_pack') }}" class="btn">Крутить ещё</a>
+            <a href="{{ url_for('profile') }}" class="btn btn-secondary">Выбрать рамку в профиле</a>
+            <a href="{{ url_for('shop', tab='frame_roulette') }}" class="btn btn-secondary">Вернуться в магазин</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

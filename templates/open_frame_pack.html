@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+
+{% block title %}Открытие рулетки рамочек{% endblock %}
+
+{% block content %}
+<div class="pack-select-page">
+    <section class="pack-opening-stage frame-pack-stage frame-pack-stage-{{ pack_meta.accent }}">
+        <span class="eyebrow">Рулетка рамочек</span>
+        <h1>{{ frame_pack.name }}</h1>
+        <p>{{ frame_pack.description }}</p>
+
+        <div class="frame-pack-hero frame-pack-hero-{{ pack_meta.accent }}">
+            <div class="roulette-icon large">{{ pack_meta.icon }}</div>
+            <div>
+                <strong>{{ pack_meta.label }}</strong>
+                <p>{{ pack_meta.description }}</p>
+            </div>
+        </div>
+
+        <div class="pack-option-grid">
+            {% for qty in quantity_options %}
+            <form method="post" class="pack-option-card">
+                <input type="hidden" name="quantity" value="{{ qty }}">
+                <div class="pack-option-count">{{ qty }}</div>
+                <h3>{{ qty }} {% if qty == 1 %}прокрутка{% elif qty < 5 %}прокрутки{% else %}прокруток{% endif %}</h3>
+                <p>Стоимость: <strong>{{ frame_pack.price * qty }}</strong> монет</p>
+                <button type="submit" class="btn btn-pack">Крутить {{ pack_meta.label }}</button>
+            </form>
+            {% endfor %}
+        </div>
+
+        <div class="pack-actions">
+            <a href="{{ url_for('shop', tab='frame_roulette') }}" class="btn btn-secondary">Вернуться в магазин</a>
+            <a href="{{ url_for('profile') }}" class="btn btn-secondary">Перейти в профиль</a>
+        </div>
+    </section>
+</div>
+{% endblock %}

@@ -43,12 +43,26 @@ function updateCoinBalance(newBalance) {
 }
 
 function initCardModals() {
+    const modals = Array.from(document.querySelectorAll('.card-modal'));
+    modals.forEach(modal => {
+        if (!modal.classList.contains('portal-ready')) {
+            document.body.appendChild(modal);
+            modal.classList.add('portal-ready');
+        }
+    });
+
+    const closeAllModals = () => {
+        document.querySelectorAll('.card-modal.active').forEach(modal => {
+            modal.classList.remove('active');
+        });
+    };
+
     document.querySelectorAll('[data-open-modal]').forEach(card => {
         card.addEventListener('click', () => {
             const modal = document.getElementById(card.dataset.openModal);
             if (modal) {
+                closeAllModals();
                 modal.classList.add('active');
-                document.body.style.overflow = 'hidden';
             }
         });
     });
@@ -58,17 +72,22 @@ function initCardModals() {
             const modal = button.closest('.card-modal');
             if (modal) {
                 modal.classList.remove('active');
-                document.body.style.overflow = '';
             }
         });
     });
 
+    document.addEventListener('click', event => {
+        const modal = event.target.closest('.card-modal.active');
+        if (!modal) return;
+        const content = event.target.closest('.card-modal-content');
+        if (!content) {
+            modal.classList.remove('active');
+        }
+    });
+
     document.addEventListener('keydown', event => {
         if (event.key === 'Escape') {
-            document.querySelectorAll('.card-modal.active').forEach(modal => {
-                modal.classList.remove('active');
-            });
-            document.body.style.overflow = '';
+            closeAllModals();
         }
     });
 }
@@ -93,25 +112,48 @@ function initPackReveal() {
     const revealButton = document.getElementById('reveal-pack-button');
     const openingStage = document.getElementById('pack-opening-stage');
     const revealStage = document.getElementById('pack-reveal-stage');
-    const revealedCard = document.getElementById('revealed-card');
+    const revealedCards = document.querySelectorAll('[data-revealed-card]');
 
     if (!revealButton || !openingStage || !revealStage) {
         return;
     }
 
+    const packCount = Number(revealButton.dataset.packCount || openingStage.dataset.packCount || 1);
+
     revealButton.addEventListener('click', () => {
+        if (revealButton.classList.contains('opening')) {
+            return;
+        }
+
         revealButton.classList.add('opening');
         openingStage.classList.add('stage-fade');
+
+        if (packCount >= 3) {
+            openingStage.classList.add('pack-stage-burst');
+        }
+        if (packCount >= 5) {
+            openingStage.classList.add('pack-stage-overdrive');
+        }
+
+        let delay = 1150;
+        let stagger = 140;
+
+        if (packCount === 3) {
+            delay = 1500;
+            stagger = 170;
+        } else if (packCount >= 5) {
+            delay = 1850;
+            stagger = 120;
+        }
 
         setTimeout(() => {
             openingStage.classList.add('hidden');
             revealStage.classList.remove('hidden');
-            requestAnimationFrame(() => {
-                revealStage.classList.add('show');
-                if (revealedCard) {
-                    revealedCard.classList.add('revealed');
-                }
+            requestAnimationFrame(() => revealStage.classList.add('show'));
+
+            revealedCards.forEach((card, index) => {
+                setTimeout(() => card.classList.add('revealed'), index * stagger);
             });
-        }, 1150);
+        }, delay);
     });
 }

@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% from "_card_macros.html" import showcase_card %}
+{% block content %}
+<div class="collection-page">
+    <div class="collection-hero hero-slim">
+        <div><h1>У кого есть карточка</h1><p class="collection-hint">Здесь можно посмотреть владельцев карточки и перейти к обмену.</p></div>
+    </div>
+    <div class="exchange-card">
+        {{ showcase_card(card=card, rarity=card.rarity, letter=get_card_letter(card), subject=card.subject, description=card.description, stars='', meta_items=[{'label':'Редкость','value':card.rarity},{'label':'Коллекционная ценность','value':card.base_price}], action_html='') }}
+    </div>
+    <div class="items-grid">
+        {% for owner in owners %}
+        <div class="shop-item">
+            <h3>{{ owner.user.username }}</h3>
+            <p>Копий: {{ owner.quantity }}</p>
+            <div class="trade-actions">
+                <a class="btn btn-secondary" href="{{ url_for('view_profile', user_id=owner.user.id) }}">Открыть профиль</a>
+                <a class="btn" href="{{ url_for('propose_exchange', target_user_id=owner.user.id, requested_card_id=card.id) }}">Предложить обмен</a>
+            </div>
+        </div>
+        {% else %}
+        <div class="shop-item"><p>Пока ни у кого нет этой карточки, кроме вас.</p></div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

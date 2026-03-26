@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% from "_card_macros.html" import showcase_card %}
+
+{% block content %}
+<div class="collection-page">
+    <div class="collection-hero hero-slim">
+        <div>
+            <h1>Список желаемого</h1>
+            <p class="collection-hint">Карточки, которые вы отметили сердечком и хотите получить в обмене.</p>
+        </div>
+        <div class="collection-stats">
+            <div class="collection-stat">
+                <span class="collection-stat-label">Карточек в списке</span>
+                <strong>{{ cards|length }}</strong>
+            </div>
+        </div>
+    </div>
+
+    {% if cards %}
+    <div class="items-grid collection-grid collection-grid-enhanced">
+        {% for card in cards %}
+        {% set action_html %}
+        <form method="post" action="{{ url_for('toggle_wishlist', card_id=card.id) }}" class="wishlist-inline-form">
+            <button type="submit" class="btn btn-secondary">Убрать из желаемого</button>
+        </form>
+        {% endset %}
+        {{ showcase_card(
+            card=card,
+            rarity=card.rarity,
+            letter=get_card_letter(card),
+            subject=card.subject,
+            description=card.description,
+            stars=get_card_stars_display(0),
+            meta_items=[
+                {'label': 'Статус', 'value': 'Уже есть' if card.id in owned_ids else 'Ожидается'},
+                {'label': 'Коллекционная ценность', 'value': card.base_price}
+            ],
+            action_html=action_html,
+            owner_url=url_for('card_owners', card_id=card.id)
+        ) }}
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="shop-item empty-collection-state">
+        <h2>Список желаемого пока пуст</h2>
+        <p>Откройте профиль другого пользователя или страницу всех карточек и отметьте нужные карточки сердечком.</p>
+        <a href="{{ url_for('cards_catalog') }}" class="btn">Открыть все карточки</a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
