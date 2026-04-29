@@ -98,7 +98,14 @@
                         <span class="rarity-badge rarity-badge-{{ user_card.card.rarity }}">{{ user_card.card.rarity }}</span>
                     </div>
                     <div class="card-showcase-body">
-                        <div class="card-emblem rarity-emblem-{{ user_card.card.rarity }}">{{ get_card_letter(user_card.card) }}</div>
+                        <!-- Изменено: добавлен вывод картинки -->
+                        <div class="card-emblem rarity-emblem-{{ user_card.card.rarity }}">
+                            {% if user_card.card.image_url %}
+                                <img src="{{ user_card.card.image_url }}" alt="{{ user_card.card.name }}" style="width:100%;height:100%;object-fit:cover;border-radius:inherit;">
+                            {% else %}
+                                {{ get_card_letter(user_card.card) }}
+                            {% endif %}
+                        </div>
                         <div class="card-copy">
                             <h3>{{ user_card.card.name }}</h3>
                             <p class="card-subject-line">Кафедра: {{ user_card.card.subject }}</p>
@@ -120,7 +127,14 @@
                     <div class="card-modal-content rarity-frame-{{ user_card.card.rarity }} compact-profile-modal">
                         <button class="modal-close" type="button" data-close-modal>&times;</button>
                         <div class="card-modal-hero compact-modal-hero">
-                            <div class="card-emblem card-emblem-large rarity-emblem-{{ user_card.card.rarity }}">{{ get_card_letter(user_card.card) }}</div>
+                            <!-- Изменено: добавлен вывод картинки -->
+                            <div class="card-emblem card-emblem-large rarity-emblem-{{ user_card.card.rarity }}">
+                                {% if user_card.card.image_url %}
+                                    <img src="{{ user_card.card.image_url }}" alt="{{ user_card.card.name }}" style="width:100%;height:100%;object-fit:cover;border-radius:inherit;">
+                                {% else %}
+                                    {{ get_card_letter(user_card.card) }}
+                                {% endif %}
+                            </div>
                             <div>
                                 <div class="card-modal-badges card-modal-badges-safe">
                                     <span class="rarity-badge rarity-badge-{{ user_card.card.rarity }}">{{ user_card.card.rarity }}</span>
@@ -174,7 +188,14 @@
                         <span class="rarity-badge rarity-badge-{{ card.rarity }}">{{ card.rarity }}</span>
                     </div>
                     <div class="card-showcase-body">
-                        <div class="card-emblem rarity-emblem-{{ card.rarity }}">{{ get_card_letter(card) }}</div>
+                        <!-- Изменено: добавлен вывод картинки -->
+                        <div class="card-emblem rarity-emblem-{{ card.rarity }}">
+                            {% if card.image_url %}
+                                <img src="{{ card.image_url }}" alt="{{ card.name }}" style="width:100%;height:100%;object-fit:cover;border-radius:inherit;">
+                            {% else %}
+                                {{ get_card_letter(card) }}
+                            {% endif %}
+                        </div>
                         <div class="card-copy">
                             <h3>{{ card.name }}</h3>
                             <p class="card-subject-line">Кафедра: {{ card.subject }}</p>
@@ -195,7 +216,14 @@
                     <div class="card-modal-content rarity-frame-{{ card.rarity }} compact-profile-modal">
                         <button class="modal-close" type="button" data-close-modal>&times;</button>
                         <div class="card-modal-hero compact-modal-hero">
-                            <div class="card-emblem card-emblem-large rarity-emblem-{{ card.rarity }}">{{ get_card_letter(card) }}</div>
+                            <!-- Изменено: добавлен вывод картинки -->
+                            <div class="card-emblem card-emblem-large rarity-emblem-{{ card.rarity }}">
+                                {% if card.image_url %}
+                                    <img src="{{ card.image_url }}" alt="{{ card.name }}" style="width:100%;height:100%;object-fit:cover;border-radius:inherit;">
+                                {% else %}
+                                    {{ get_card_letter(card) }}
+                                {% endif %}
+                            </div>
                             <div>
                                 <div class="card-modal-badges card-modal-badges-safe">
                                     <span class="rarity-badge rarity-badge-{{ card.rarity }}">{{ card.rarity }}</span>

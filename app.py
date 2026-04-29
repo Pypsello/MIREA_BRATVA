@@ -392,14 +392,21 @@ def get_frame_pack_meta(pack_code):
 
 def seed_data():
     sync_frame_assets()
+    
     if not Card.query.first():
         cards = [
-            Card(name='Иванов И.И.', description='Преподаватель математики', rarity='common', subject='Математика', base_price=50),
-            Card(name='Петров П.П.', description='Преподаватель программирования', rarity='rare', subject='Программирование', base_price=80),
-            Card(name='Сидорова А.А.', description='Преподаватель физики', rarity='epic', subject='Физика', base_price=120),
-            Card(name='Кузнецов К.К.', description='Легендарный преподаватель ИИ', rarity='legendary', subject='ИИ', base_price=250),
+            Card(name='Вход', description='приключение на 4 года', rarity='common', subject='Вуз', base_price=50, image_url='/static/img/cards/enter.jpg'),
+            Card(name='Унифуд', description='Хоть где-то реаьно круто', rarity='rare', subject='Вуз', base_price=85, image_url='/static/img/cards/cafe.jpg'),
+            Card(name='ДАААВИИИИД', description='Сильнейший человек на планете, жаль что ещё не все его знают', rarity='epic', subject='ИКБО-30-23', base_price=130, image_url='/static/img/cards/david.jpg'),
+            Card(name='Шошников', description='Безумно любит нас и работу', rarity='legendary', subject='Захват Движения', base_price=250, image_url='/static/img/cards/shosh.jpg'),
+            Card(name='Дзержинский', description='Легендарный преподаватель, самый лучший', rarity='legendary', subject='Математика', base_price=250, image_url='/static/img/cards/Dzerj.jpg'),
+            Card(name='Шутов', description='Лучший геймдизайнер', rarity='legendary', subject='Геймдизайн', base_price=250, image_url='/static/img/cards/Shutov.jpg'),
+            Card(name='Иерусалимов', description='Преподаватель, спасший группу', rarity='legendary', subject='Геймдизайн', base_price=250, image_url='/static/img/cards/Ierusalimov.jpg'),
+            Card(name='Карпов', description='Самый весёлый преподаватель', rarity='legendary', subject='Информатика', base_price=250, image_url='/static/img/cards/karpov.jpg'),
+            Card(name='Акатьев', description='Великий человек', rarity='legendary', subject='Глава', base_price=250, image_url='/static/img/cards/main.jpg'),
         ]
         db.session.add_all(cards)
+        print("✅ Карточки с картинками добавлены в базу")
 
     if not Quiz.query.first():
         quiz1 = Quiz(subject='Математика', title='Базовый тест по математике', reward_coins=30, passing_score=60)
@@ -466,6 +473,7 @@ def seed_data():
                     item.description = 'Коллекционная рамка для профиля из набора Frames.'
 
     db.session.commit()
+    print("✅ Карточки с картинками добавлены в базу")
 
 
 @app.route('/')
@@ -750,16 +758,25 @@ def upgrade_card(card_id):
     flash(f'Карточка «{user_card.card.name}» улучшена до {user_card.star_level}★')
     return redirect(url_for('collection'))
 
+@app.route('/dev/add-coins/<int:amount>')
+@login_required
+def dev_add_coins(amount):
+    # Защита: работает только в режиме разработки
+    if not app.debug:
+        flash("Функция доступна только в debug-режиме!")
+        return redirect(url_for('profile'))
+    
+    current_user.coins += amount
+    db.session.commit()
+    flash(f"✅ Начислено {amount} монет. Текущий баланс: {current_user.coins}")
+    return redirect(url_for('profile'))
 
 @app.route('/quizzes')
 @login_required
 def quizzes():
     quizzes_list = Quiz.query.all()
     return render_template('quizzes.html', quizzes=quizzes_list)
-
-
 @app.route('/quiz/<int:quiz_id>', methods=['GET', 'POST'])
-@login_required
 def take_quiz(quiz_id):
     quiz = Quiz.query.get_or_404(quiz_id)
     questions = Question.query.filter_by(quiz_id=quiz_id).all()
@@ -1230,4 +1247,4 @@ if __name__ == '__main__':
         db.create_all()
         ensure_database_schema()
         seed_data()
-    app.run(debug=False)
+    app.run(debug=True)

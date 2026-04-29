@@ -1,4 +1,4 @@
-{% macro showcase_card(card, rarity, letter, subject, description, stars='', top_badge='', meta_items=[], action_html='', owner_url='', owner_label='У кого есть') -%}
+{% macro showcase_card(card, rarity, letter, subject, description, stars='', top_badge='', meta_items=[], action_html='', owner_url='', owner_label='У кого есть', image_url='') -%}
 <article class="shop-item card-tile card-showcase card-standard rarity-{{ rarity }}">
     <div class="card-showcase-glow"></div>
     <div class="card-showcase-top">
@@ -6,7 +6,14 @@
         {% if top_badge %}<span class="card-top-pill">{{ top_badge }}</span>{% endif %}
     </div>
     <div class="card-showcase-body">
-        <div class="card-emblem rarity-emblem-{{ rarity }}">{{ letter }}</div>
+        <!-- Изменено: добавлена проверка image_url -->
+        <div class="card-emblem rarity-emblem-{{ rarity }}">
+            {% if image_url %}
+                <img src="{{ image_url }}" alt="{{ card.name }}" style="width:100%;height:100%;object-fit:cover;border-radius:inherit;">
+            {% else %}
+                {{ letter }}
+            {% endif %}
+        </div>
         <div class="card-copy">
             <h3>{{ card.name }}</h3>
             <p class="card-subject-line">Кафедра: {{ subject }}</p>

@@ -29,6 +29,7 @@
         {% endset %}
         {{ showcase_card(
             card=card,
+            image_url=card.image_url,
             rarity=card.rarity,
             letter=get_card_letter(card),
             subject=card.subject,

@@ -390,12 +390,18 @@ def seed_data() -> None:
 
     if not Card.query.first():
         cards = [
-            Card(name="Иванов И.И.", description="Преподаватель математики", rarity="common", subject="Математика", base_price=50, image_url="/static/img/cards/ivanov.png"),
-            Card(name="Петров П.П.", description="Преподаватель Python", rarity="rare", subject="Программирование", base_price=85, image_url="/static/img/cards/petrov.png"),
-            Card(name="Сидорова А.А.", description="Преподаватель физики", rarity="epic", subject="Физика", base_price=130, image_url="/static/img/cards/sidorova.png"),
-            Card(name="Кузнецов К.К.", description="Легендарный преподаватель ИИ", rarity="legendary", subject="ИИ", base_price=250, image_url="/static/img/cards/kuznetsov.png"),
+            Card(name='Иванов И.И.', description='Преподаватель математики', rarity='common', subject='Математика', base_price=50, image_url='/static/img/cards/ivanov.png'),
+            Card(name='Петров П.П.', description='Преподаватель Python', rarity='rare', subject='Программирование', base_price=85, image_url='/static/img/cards/petrov.png'),
+            Card(name='Сидорова А.А.', description='Преподаватель физики', rarity='epic', subject='Физика', base_price=130, image_url='/static/img/cards/sidorova.png'),
+            Card(name='Кузнецов К.К.', description='Легендарный преподаватель ИИ', rarity='legendary', subject='ИИ', base_price=250, image_url='/static/img/cards/kuznetsov.png'),
+            Card(name='Дзержинский', description='Легендарный преподаватель, самый лучший', rarity='legendary', subject='Математика', base_price=250, image_url='/static/img/cards/Dzerj.jpg'),
+            Card(name='Шутов', description='Лучший геймдизайнер', rarity='legendary', subject='Геймдизайн', base_price=250, image_url='/static/img/cards/Shutov.jpg'),
+            Card(name='Иерусалимов', description='Преподаватель, спасший группу', rarity='legendary', subject='Геймдизайн', base_price=250, image_url='/static/img/cards/Ierusalimov.jpg'),
+            Card(name='Карпов', description='Самый весёлый преподаватель', rarity='legendary', subject='Информатика', base_price=250, image_url='/static/img/cards/karpov.jpg'),
+            Card(name='Акатьев', description='Великий человек', rarity='legendary', subject='Глава', base_price=250, image_url='/static/img/cards/main.jpg'),
         ]
         db.session.add_all(cards)
+        print("✅ Карточки с картинками добавлены в базу")
 
     if not Quiz.query.first():
         quiz_math = Quiz(subject="Математика", title="Базовый тест по математике", reward_coins=30, passing_score=60)

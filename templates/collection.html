@@ -36,7 +36,14 @@
                     </div>
 
                     <div class="card-showcase-body">
-                        <div class="card-emblem rarity-emblem-{{ user_card.card.rarity }}">{{ get_card_letter(user_card.card) }}</div>
+                        <!-- Изменено: условный вывод картинки или буквы -->
+                        <div class="card-emblem rarity-emblem-{{ user_card.card.rarity }}">
+                            {% if user_card.card.image_url %}
+                                <img src="{{ user_card.card.image_url }}" alt="{{ user_card.card.name }}" style="width:100%;height:100%;object-fit:cover;border-radius:inherit;">
+                            {% else %}
+                                {{ get_card_letter(user_card.card) }}
+                            {% endif %}
+                        </div>
 
                         <div class="card-copy">
                             <h3>{{ user_card.card.name }}</h3>
@@ -69,7 +76,14 @@
                         <button class="modal-close" type="button" data-close-modal>&times;</button>
 
                         <div class="card-modal-hero">
-                            <div class="card-emblem card-emblem-large rarity-emblem-{{ user_card.card.rarity }}">{{ get_card_letter(user_card.card) }}</div>
+                            <!-- Изменено: условный вывод картинки или буквы -->
+                            <div class="card-emblem card-emblem-large rarity-emblem-{{ user_card.card.rarity }}">
+                                {% if user_card.card.image_url %}
+                                    <img src="{{ user_card.card.image_url }}" alt="{{ user_card.card.name }}" style="width:100%;height:100%;object-fit:cover;border-radius:inherit;">
+                                {% else %}
+                                    {{ get_card_letter(user_card.card) }}
+                                {% endif %}
+                            </div>
                             <div>
                                 <div class="card-modal-badges card-modal-badges-safe">
                                     <span class="rarity-badge rarity-badge-{{ user_card.card.rarity }}">{{ user_card.card.rarity }}</span>
