@@ -49,8 +49,13 @@
                 </div>
 
                 <div class="revealed-body">
+                    <!-- Изменено: добавлен вывод картинки -->
                     <div class="card-emblem card-emblem-xl rarity-emblem-{{ card.rarity }}">
-                        {% if card.rarity == 'common' %}C{% elif card.rarity == 'rare' %}R{% elif card.rarity == 'epic' %}E{% else %}L{% endif %}
+                        {% if card.image_url %}
+                            <img src="{{ card.image_url }}" alt="{{ card.name }}" style="width:100%;height:100%;object-fit:cover;border-radius:inherit;">
+                        {% else %}
+                            {% if card.rarity == 'common' %}C{% elif card.rarity == 'rare' %}R{% elif card.rarity == 'epic' %}E{% else %}L{% endif %}
+                        {% endif %}
                     </div>
                     <h2>{{ card.name }}</h2>
                     <p class="card-subject-line">Кафедра: {{ card.subject }}</p>
