@@ -32,6 +32,52 @@
     </div>
 
     <div class="profile-sections items-grid profile-sections-grid">
+        {% if is_owner %}
+        <section class="shop-item profile-bio-card">
+            <h3>Ежедневная награда</h3>
+            <p>Получайте бонус раз в день: <strong>+{{ daily_bonus_amount }} монет</strong>.</p>
+            <form method="post" action="{{ url_for('claim_daily_bonus') }}">
+                <button type="submit" class="btn" {% if not can_claim_daily_bonus %}disabled{% endif %}>
+                    {% if can_claim_daily_bonus %}Забрать награду{% else %}Уже получено сегодня{% endif %}
+                </button>
+            </form>
+        </section>
+        {% else %}
+        <section class="shop-item profile-bio-card">
+            <h3>Дружба</h3>
+            {% if friendship_status and friendship_status.status == 'accepted' %}
+                <p>Вы уже друзья.</p>
+                <form method="post" action="{{ url_for('update_friendship', friendship_id=friendship_status.id, action='remove') }}">
+                    <button type="submit" class="btn btn-secondary">Удалить из друзей</button>
+                </form>
+            {% elif friendship_status and friendship_status.status == 'pending' and friendship_status.requester_id == current_user.id %}
+                <p>Заявка в друзья уже отправлена.</p>
+            {% elif friendship_status and friendship_status.status == 'pending' %}
+                <p>Пользователь отправил вам заявку.</p>
+                <form method="post" action="{{ url_for('update_friendship', friendship_id=friendship_status.id, action='accept') }}">
+                    <button type="submit" class="btn">Принять заявку</button>
+                </form>
+            {% else %}
+                <form method="post" action="{{ url_for('add_friend_from_profile', user_id=user.id) }}">
+                    <button type="submit" class="btn">Добавить в друзья</button>
+                </form>
+            {% endif %}
+        </section>
+        {% endif %}
+
+        <section class="shop-item profile-bio-card">
+            <h3>{% if is_owner %}Мои друзья{% else %}Друзья пользователя{% endif %}</h3>
+            {% if friends %}
+                <div class="profile-form-stack">
+                    {% for friend in friends[:6] %}
+                        <a href="{{ url_for('view_profile', user_id=friend.id) }}">{{ friend.username }}</a>
+                    {% endfor %}
+                </div>
+                {% if is_owner %}<p class="profile-note"><a href="{{ url_for('friends') }}">Управлять друзьями</a></p>{% endif %}
+            {% else %}
+                <p>Список друзей пока пуст.</p>
+            {% endif %}
+        </section>
         <section class="shop-item profile-bio-card">
             <h3>Описание</h3>
             {% if is_owner %}

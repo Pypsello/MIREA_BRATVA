@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+
+{% block title %}Друзья — MIREA_BRATVA{% endblock %}
+
+{% block content %}
+<div class="exchange-card">
+    <h1>Друзья</h1>
+    <form method="post" class="profile-form-stack">
+        <label for="username">Добавить друга по имени пользователя</label>
+        <input type="text" id="username" name="username" placeholder="Введите username" required>
+        <button type="submit" class="btn">Отправить заявку</button>
+    </form>
+</div>
+
+<div class="profile-sections items-grid profile-sections-grid">
+    <section class="shop-item">
+        <h3>Мои друзья</h3>
+        {% if friends %}
+            <div class="profile-form-stack">
+                {% for friend in friends %}
+                    <div class="meta-chip">
+                        <span><a href="{{ url_for('view_profile', user_id=friend.id) }}">{{ friend.username }}</a></span>
+                        {% set friendship = (friend.sent_friend_requests + friend.received_friend_requests)|selectattr('status', 'equalto', 'accepted')|list %}
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p>Вы пока никого не добавили.</p>
+        {% endif %}
+    </section>
+
+    <section class="shop-item">
+        <h3>Входящие заявки</h3>
+        {% if incoming_requests %}
+            <div class="profile-form-stack">
+                {% for request_item in incoming_requests %}
+                    <div class="meta-chip">
+                        <span><a href="{{ url_for('view_profile', user_id=request_item.requester.id) }}">{{ request_item.requester.username }}</a></span>
+                        <form method="post" action="{{ url_for('update_friendship', friendship_id=request_item.id, action='accept') }}">
+                            <button type="submit" class="btn">Принять</button>
+                        </form>
+                        <form method="post" action="{{ url_for('update_friendship', friendship_id=request_item.id, action='reject') }}">
+                            <button type="submit" class="btn btn-secondary">Отклонить</button>
+                        </form>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p>Нет новых заявок.</p>
+        {% endif %}
+    </section>
+
+    <section class="shop-item">
+        <h3>Исходящие заявки</h3>
+        {% if outgoing_requests %}
+            <div class="profile-form-stack">
+                {% for request_item in outgoing_requests %}
+                    <div class="meta-chip">
+                        <span><a href="{{ url_for('view_profile', user_id=request_item.addressee.id) }}">{{ request_item.addressee.username }}</a></span>
+                        <form method="post" action="{{ url_for('update_friendship', friendship_id=request_item.id, action='remove') }}">
+                            <button type="submit" class="btn btn-secondary">Отменить</button>
+                        </form>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p>Нет отправленных заявок.</p>
+        {% endif %}
+    </section>
+</div>
+{% endblock %}
