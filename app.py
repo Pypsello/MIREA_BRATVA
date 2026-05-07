@@ -11,9 +11,12 @@ import re
 import shutil
 from pathlib import Path
 
+
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'your-secret-key-change-in-production'
-app.config['SQLALCHEMY_DATABASE_URI'] = f"sqlite:///{os.path.join(app.instance_path, 'quiz_platform.db')}"
+BASE_DIR = os.path.abspath(os.path.dirname(__file__))
+db_path = os.path.join(BASE_DIR, 'instance', 'quiz_platform.db')
+app.config['SQLALCHEMY_DATABASE_URI'] = f"sqlite:///{db_path}"
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
     'connect_args': {'timeout': 20, 'check_same_thread': False}
@@ -171,6 +174,23 @@ class WishlistItem(db.Model):
     card = db.relationship('Card', backref=db.backref('wishlist_entries', lazy=True, cascade='all, delete-orphan'))
 
 
+class Friendship(db.Model):
+    __tablename__ = 'friendship'
+
+    id = db.Column(db.Integer, primary_key=True)
+    requester_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    addressee_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    status = db.Column(db.String(20), default='pending')
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    requester = db.relationship('User', foreign_keys=[requester_id], backref=db.backref('sent_friend_requests', lazy=True, cascade='all, delete-orphan'))
+    addressee = db.relationship('User', foreign_keys=[addressee_id], backref=db.backref('received_friend_requests', lazy=True, cascade='all, delete-orphan'))
+
+    __table_args__ = (
+        db.UniqueConstraint('requester_id', 'addressee_id', name='uq_friendship_pair'),
+    )
+
+
 @login_manager.user_loader
 def load_user(user_id):
     return db.session.get(User, int(user_id))
@@ -187,6 +207,8 @@ def ensure_database_schema():
             db.session.execute(text("ALTER TABLE user ADD COLUMN owned_frames TEXT DEFAULT '[]'"))
         if 'avatar_icon' not in user_columns:
             db.session.execute(text("ALTER TABLE user ADD COLUMN avatar_icon TEXT DEFAULT 'letter'"))
+        if 'last_daily_bonus' not in user_columns:
+            db.session.execute(text("ALTER TABLE user ADD COLUMN last_daily_bonus DATETIME DEFAULT NULL"))
         db.session.commit()
         db.session.execute(text("UPDATE user SET bio = '' WHERE bio IS NULL"))
         db.session.execute(text("UPDATE user SET owned_frames = '[]' WHERE owned_frames IS NULL OR owned_frames = ''"))
@@ -354,6 +376,34 @@ def get_user_card_wealth(user_card):
 
 def is_card_in_wishlist(user_id, card_id):
     return WishlistItem.query.filter_by(user_id=user_id, card_id=card_id).first() is not None
+
+
+DAILY_BONUS_AMOUNT = 100
+
+
+def can_claim_daily_bonus(user):
+    last_bonus = getattr(user, 'last_daily_bonus', None)
+    return not last_bonus or last_bonus.date() < datetime.utcnow().date()
+
+
+def get_friendship_between(user_one_id, user_two_id):
+    return Friendship.query.filter(
+        db.or_(
+            db.and_(Friendship.requester_id == user_one_id, Friendship.addressee_id == user_two_id),
+            db.and_(Friendship.requester_id == user_two_id, Friendship.addressee_id == user_one_id),
+        )
+    ).first()
+
+
+def get_user_friends(user_id):
+    accepted = Friendship.query.filter(
+        Friendship.status == 'accepted',
+        db.or_(Friendship.requester_id == user_id, Friendship.addressee_id == user_id),
+    ).order_by(Friendship.created_at.desc()).all()
+    friends = []
+    for friendship in accepted:
+        friends.append(friendship.addressee if friendship.requester_id == user_id else friendship.requester)
+    return friends
 
 
 
@@ -627,6 +677,10 @@ def profile():
         avatar_icons=get_avatar_icons(),
         get_avatar_icon_symbol=get_avatar_icon_symbol,
         get_card_stars_display=get_card_stars_display,
+        can_claim_daily_bonus=can_claim_daily_bonus(current_user),
+        daily_bonus_amount=DAILY_BONUS_AMOUNT,
+        friends=get_user_friends(current_user.id),
+        friendship_status=None,
     )
 
 
@@ -643,6 +697,7 @@ def view_profile(user_id):
         .order_by(WishlistItem.created_at.desc(), Card.name.asc())
         .all()
     )
+    friendship = None if user.id == current_user.id else get_friendship_between(current_user.id, user.id)
     return render_template(
         'profile.html',
         user=user,
@@ -654,7 +709,108 @@ def view_profile(user_id):
         avatar_icons=get_avatar_icons(),
         get_avatar_icon_symbol=get_avatar_icon_symbol,
         get_card_stars_display=get_card_stars_display,
+        can_claim_daily_bonus=False,
+        daily_bonus_amount=DAILY_BONUS_AMOUNT,
+        friends=get_user_friends(user.id),
+        friendship_status=friendship,
     )
+
+
+@app.route('/daily-bonus', methods=['POST'])
+@login_required
+def claim_daily_bonus():
+    if not can_claim_daily_bonus(current_user):
+        flash('Ежедневная награда уже получена. Возвращайтесь завтра!')
+        return redirect(request.referrer or url_for('profile'))
+
+    current_user.coins += DAILY_BONUS_AMOUNT
+    current_user.last_daily_bonus = datetime.utcnow()
+    db.session.commit()
+    flash(f'Вы получили ежедневную награду: +{DAILY_BONUS_AMOUNT} монет')
+    return redirect(request.referrer or url_for('profile'))
+
+
+@app.route('/friends', methods=['GET', 'POST'])
+@login_required
+def friends():
+    if request.method == 'POST':
+        username = (request.form.get('username') or '').strip()
+        target = User.query.filter(db.func.lower(User.username) == username.lower()).first() if username else None
+
+        if not target:
+            flash('Пользователь не найден')
+        elif target.id == current_user.id:
+            flash('Нельзя добавить самого себя')
+        else:
+            existing = get_friendship_between(current_user.id, target.id)
+            if existing:
+                if existing.status == 'accepted':
+                    flash('Вы уже друзья')
+                elif existing.requester_id == current_user.id:
+                    flash('Заявка уже отправлена')
+                else:
+                    existing.status = 'accepted'
+                    db.session.commit()
+                    flash(f'Вы приняли заявку от {target.username}')
+            else:
+                db.session.add(Friendship(requester_id=current_user.id, addressee_id=target.id))
+                db.session.commit()
+                flash(f'Заявка в друзья отправлена пользователю {target.username}')
+        return redirect(url_for('friends'))
+
+    incoming_requests = Friendship.query.filter_by(addressee_id=current_user.id, status='pending').order_by(Friendship.created_at.desc()).all()
+    outgoing_requests = Friendship.query.filter_by(requester_id=current_user.id, status='pending').order_by(Friendship.created_at.desc()).all()
+    return render_template(
+        'friends.html',
+        friends=get_user_friends(current_user.id),
+        incoming_requests=incoming_requests,
+        outgoing_requests=outgoing_requests,
+    )
+
+
+@app.route('/friends/<int:friendship_id>/<action>', methods=['POST'])
+@login_required
+def update_friendship(friendship_id, action):
+    friendship = Friendship.query.get_or_404(friendship_id)
+
+    if action == 'accept' and friendship.addressee_id == current_user.id and friendship.status == 'pending':
+        friendship.status = 'accepted'
+        db.session.commit()
+        flash('Заявка принята')
+    elif action in {'reject', 'remove'} and current_user.id in {friendship.requester_id, friendship.addressee_id}:
+        db.session.delete(friendship)
+        db.session.commit()
+        flash('Запись о дружбе удалена')
+    else:
+        flash('Действие недоступно')
+
+    return redirect(request.referrer or url_for('friends'))
+
+
+@app.route('/friends/add/<int:user_id>', methods=['POST'])
+@login_required
+def add_friend_from_profile(user_id):
+    target = User.query.get_or_404(user_id)
+    if target.id == current_user.id:
+        flash('Нельзя добавить самого себя')
+        return redirect(url_for('profile'))
+
+    existing = get_friendship_between(current_user.id, target.id)
+    if existing:
+        if existing.status == 'accepted':
+            flash('Вы уже друзья')
+        elif existing.requester_id == current_user.id:
+            flash('Заявка уже отправлена')
+        else:
+            existing.status = 'accepted'
+            db.session.commit()
+            flash(f'Вы приняли заявку от {target.username}')
+    else:
+        db.session.add(Friendship(requester_id=current_user.id, addressee_id=target.id))
+        db.session.commit()
+        flash(f'Заявка в друзья отправлена пользователю {target.username}')
+
+    return redirect(url_for('view_profile', user_id=target.id))
 
 
 @app.route('/collection')
@@ -1248,3 +1404,7 @@ if __name__ == '__main__':
         ensure_database_schema()
         seed_data()
     app.run(debug=True)
+
+
+
+print(app.instance_path)
