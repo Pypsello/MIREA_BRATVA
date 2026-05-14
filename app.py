@@ -454,6 +454,9 @@ def seed_data():
             Card(name='Иерусалимов', description='Преподаватель, спасший группу', rarity='legendary', subject='Геймдизайн', base_price=250, image_url='/static/img/cards/Ierusalimov.jpg'),
             Card(name='Карпов', description='Самый весёлый преподаватель', rarity='legendary', subject='Информатика', base_price=250, image_url='/static/img/cards/karpov.jpg'),
             Card(name='Акатьев', description='Великий человек', rarity='legendary', subject='Глава', base_price=250, image_url='/static/img/cards/main.jpg'),
+            Card(name='Воронцова', description='Дай бог здоровья таким людям', rarity='epic', subject='МОСИТ', base_price=130, image_url='/static/img/cards/woman.jpg'),
+            Card(name='Воронцов', description='Дай бог счастья таким людям', rarity='epic', subject='МОСИТ', base_price=130, image_url='/static/img/cards/man.jpg'),
+            Card(name='Воронцовы', description='Дай бог любви таким людям', rarity='legendary', subject='МОСИТ', base_price=250, image_url='/static/img/cards/pair.jpg'),
         ]
         db.session.add_all(cards)
         print("✅ Карточки с картинками добавлены в базу")
